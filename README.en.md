@@ -6,6 +6,17 @@ Check account usage, compare models and choose which device should handle a task
 
 ![Account quotas and local inference usage in the sample workspace](screenshots/overview.png)
 
+## Highlights
+
+- **Try it offline.** Extract the ZIP and open `index.html`. The demo needs no installation, account or API key.
+- **Track quotas and consumption separately.** Subscription accounts show quota windows and reset times. Local DeepSeek shows request counts and input, output and cached token counts.
+- **Find models by device.** Name the dashboard and each device, then see which tools and models are available locally and on the SSH hosts you register.
+- **Choose how to assign work.** The dashboard recommends a first choice and alternatives for 13 task types using available devices, models and ratings. Pin a model on a particular device or exclude it from recommendations.
+- **Keep ratings up to date.** Enable sync with your own Artificial Analysis key to check for updates every 24 hours or refresh manually. Models without a matching rating keep a blank score.
+- **Share a read-only summary.** Trusted readers can view usage through a separate password-protected port. Only the local management interface can change settings or start collection.
+- **Choose when to connect real data.** The public demo and screenshots use synthetic data. Cloning the repository does not scan your network. Local usage collection requires both a startup flag and consent in the interface.
+- **Verify the results yourself.** Rebuild the demo snapshots from source and run `python3 test_demo.py` to check recommendations and sharing permissions. With Chrome and Node.js installed, the tests also exercise login in a real browser.
+
 ## Try the demo
 
 [Download the source ZIP](https://github.com/ozrwayne/model-usage-desk/archive/refs/heads/main.zip), extract it and open `index.html`. The read-only demo works offline without an account or API key. The screenshots and static page use generated sample data.
