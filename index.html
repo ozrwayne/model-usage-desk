@@ -1,0 +1,1570 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>模型用量</title>
+<style>
+@font-face {
+  font-family: "Zhuque Fangsong";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./assets/zhuque.woff2") format("woff2");
+}
+:root {
+  --font: "Times New Roman", Times, "Zhuque Fangsong", serif;
+  --ink: #181512;
+  --ink-soft: #3d3730;
+  --muted: #6e665c;
+  --line: #e2dad0;
+  --line-strong: #c8bca9;
+  --paper: #f6f1e8;
+  --canvas-bg: #faf7f1;
+  --canvas-dot: #d5c9b8;
+  --card: #fffdf9;
+  --surface-2: #ede5d8;
+  --hot: #9c3b2e;
+  --hot-bg: #9c3b2e16;
+  --warn: #8a5a12;
+  --warn-bg: #8a5a1218;
+  --ok: #2f6849;
+  --ok-bg: #2f684918;
+  --ultra: #1e566e;
+  --ultra-bg: #1e566e1a;
+  --wire: #b8ab98;
+  --wire-main: #4a4238;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #f5f0e6;
+    --ink-soft: #d7cfc2;
+    --muted: #a39a8c;
+    --line: #322c25;
+    --line-strong: #4d4439;
+    --paper: #141210;
+    --canvas-bg: #181512;
+    --canvas-dot: #332d26;
+    --card: #1f1b17;
+    --surface-2: #29241e;
+    --hot: #eb998b;
+    --hot-bg: #eb998b22;
+    --warn: #e5b560;
+    --warn-bg: #e5b56022;
+    --ok: #76b892;
+    --ok-bg: #76b89222;
+    --ultra: #82b8cf;
+    --ultra-bg: #82b8cf26;
+    --wire: #52483d;
+    --wire-main: #b8ab98;
+    color-scheme: dark;
+  }
+}
+*, *::before, *::after { box-sizing: border-box; }
+i, em { font-style: normal; }
+html, body { margin: 0; max-width: 100%; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 17px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 针对仿宋单字重偏细：中文主信息微描边增重，西文直接启用 Times 原生 700 粗体 */
+.strong-zh {
+  color: var(--ink);
+  -webkit-text-stroke: 0.32px currentColor;
+  letter-spacing: 0.01em;
+}
+.strong-en {
+  color: var(--ink);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* 可复用厂商图标徽章 */
+.v-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  background: var(--v-bg, var(--surface-2));
+  color: var(--v-color, var(--ink));
+  flex: none;
+  vertical-align: middle;
+}
+.v-icon svg { width: 100%; height: 100%; display: block; }
+@media (prefers-color-scheme: dark) {
+  .v-icon-mono { color: var(--v-dark, var(--ink)); background: var(--surface-2); }
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 5px 12px;
+  min-height: 32px;
+  cursor: pointer;
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+button:hover { border-color: var(--ink-soft); background: var(--surface-2); }
+button:focus-visible, summary:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+button[aria-pressed="true"], button[aria-selected="true"] {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+@media (prefers-reduced-motion: reduce) {
+  button { transition: none; }
+}
+
+main { max-width: 1200px; margin: 0 auto; padding: 20px 24px 56px; min-width: 0; }
+
+/* Sticky Topbar */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: color-mix(in srgb, var(--paper) 92%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line-strong);
+  padding: 12px 0;
+  margin-bottom: 22px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 18px;
+}
+.brand { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+h1 { font-size: 30px; font-weight: 400; line-height: 1; margin: 0; letter-spacing: -0.02em; white-space: nowrap; -webkit-text-stroke: 0.35px currentColor; }
+h2 { font-size: 24px; font-weight: 400; line-height: 1.2; margin: 0; color: var(--ink); letter-spacing: -0.01em; -webkit-text-stroke: 0.35px currentColor; }
+h3 { font-size: 20px; font-weight: 400; line-height: 1.25; margin: 0; color: var(--ink); -webkit-text-stroke: 0.25px currentColor; }
+
+.sec-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  margin: 28px 0 14px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--line-strong);
+}
+.sec-head:first-child { margin-top: 4px; }
+
+.health-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 15px;
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 4px 11px;
+  min-height: 28px;
+  background: var(--card);
+}
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); display: inline-block; flex: none; }
+.dot.is-warn { background: var(--warn); }
+.dot.is-hot { background: var(--hot); }
+
+.nav-tabs {
+  display: inline-flex;
+  background: var(--surface-2);
+  padding: 3px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  gap: 2px;
+}
+.nav-tabs button {
+  border: 0;
+  border-radius: 6px;
+  padding: 5px 15px;
+  font-size: 17px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.nav-tabs button[aria-selected="true"] { -webkit-text-stroke: 0.25px currentColor; }
+.nav-tabs button:hover:not([aria-selected="true"]) { background: var(--card); }
+.tab-badge {
+  font-size: 14px;
+  font-weight: 700;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--line);
+  color: var(--ink);
+  line-height: 1.5;
+  -webkit-text-stroke: 0;
+}
+button[aria-selected="true"] .tab-badge { background: var(--paper); color: var(--ink); }
+.tab-badge.is-hot { background: var(--hot); color: #fff; }
+
+.tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 15px; }
+.seg { display: inline-flex; border: 1px solid var(--line-strong); border-radius: 6px; overflow: hidden; background: var(--card); }
+.seg button { border: 0; border-right: 1px solid var(--line); border-radius: 0; padding: 4px 11px; min-height: 30px; font-size: 15px; }
+.seg button:last-child { border-right: 0; }
+
+.num { font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+
+/* Sampling Drawer */
+.drawer {
+  background: var(--card);
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+}
+.drawer[hidden] { display: none; }
+.drawer-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+
+/* Chips & Badges */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 7px;
+  border-radius: 4px;
+  font-size: 14px;
+  line-height: 1.55;
+  background: var(--surface-2);
+  color: var(--ink-soft);
+  border: 1px solid var(--line);
+  white-space: nowrap;
+}
+.chip-ok { background: var(--ok-bg); color: var(--ok); border-color: transparent; font-weight: 700; }
+.chip-warn { background: var(--warn-bg); color: var(--warn); border-color: transparent; font-weight: 700; }
+.chip-hot { background: var(--hot-bg); color: var(--hot); border-color: transparent; font-weight: 700; }
+.chip-ultra { background: var(--ultra-bg); color: var(--ultra); border-color: transparent; font-weight: 700; }
+.chip-ink { background: var(--ink); color: var(--paper); border-color: var(--ink); font-weight: 700; }
+.chip-host { background: transparent; color: var(--muted); }
+.node-strip { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 14px; }
+.node-strip .chip { font-size: 15px; padding: 3px 9px; }
+
+/* Alert Strip */
+.tight-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+  gap: 12px;
+}
+.alert-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--warn);
+  border-radius: 8px;
+  padding: 14px 16px;
+  min-width: 0;
+}
+.alert-card.is-hot { border-top-color: var(--hot); }
+.alert-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 15px; color: var(--muted); }
+.alert-pct { font-size: 42px; font-weight: 700; line-height: 1; letter-spacing: -0.03em; margin: 8px 0; }
+.alert-pct.is-hot { color: var(--hot); }
+.alert-pct.is-warn { color: var(--warn); }
+.alert-foot { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; font-size: 15px; color: var(--muted); }
+
+/* Spend KPI & Split Layout */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.kpi-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+.kpi-val { font-size: 32px; font-weight: 700; line-height: 1.05; letter-spacing: -0.03em; }
+.kpi-sub { font-size: 15px; color: var(--muted); margin-top: 4px; }
+
+.spend-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: stretch;
+}
+.spend-split > .panel-box {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.spend-split .days {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 0;
+}
+.spend-split .more-btn { margin-top: auto; }
+.panel-box {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 16px;
+  min-width: 0;
+}
+.box-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+
+/* Accounts Grid */
+.accounts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(330px, 100%), 1fr));
+  gap: 12px;
+}
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 15px 16px;
+  min-width: 0;
+}
+.card-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; }
+.card-title { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0; }
+.card-head > :last-child { white-space: nowrap; flex-shrink: 0; }
+.acct-id { font-size: 15px; color: var(--muted); }
+.win-row { padding: 8px 0; border-top: 1px solid var(--line); }
+.win-row:first-of-type { border-top: 0; padding-top: 2px; }
+.win-main { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; }
+.win-top { display: flex; justify-content: space-between; gap: 8px; font-size: 16px; }
+.win-pct { font-size: 18px; font-weight: 700; }
+.win-pct.is-hot { color: var(--hot); }
+.win-pct.is-warn { color: var(--warn); }
+.meter { height: 5px; background: var(--surface-2); border-radius: 3px; overflow: hidden; margin: 5px 0; }
+.meter > span { display: block; height: 100%; background: var(--ink); border-radius: 3px; }
+.meter.is-warn > span { background: var(--warn); }
+.meter.is-hot > span { background: var(--hot); }
+.win-meta { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; font-size: 14px; color: var(--muted); }
+.mini-spark { width: 88px; height: 24px; display: block; color: var(--muted); }
+.mini-spark path { fill: none; stroke: currentColor; stroke-width: 1.4; }
+.card-foot { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); display: flex; flex-wrap: wrap; gap: 6px 12px; font-size: 14px; color: var(--muted); }
+
+/* Days Bars */
+.days { display: grid; gap: 8px; }
+.day { display: grid; grid-template-columns: 48px minmax(0, 1fr) 64px; gap: 10px; align-items: center; font-size: 15px; }
+.bar { height: 8px; background: var(--surface-2); border-radius: 4px; overflow: hidden; }
+.bar > span { display: block; height: 100%; background: var(--ink); border-radius: 4px; }
+
+/* Dispatch Priority Strip */
+.prio-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+}
+.prio-label { font-size: 15px; color: var(--muted); margin-right: 2px; }
+.prio-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 10px 4px 6px;
+  border-radius: 7px;
+  background: var(--paper);
+  border: 1px solid var(--line-strong);
+  font-size: 16px;
+}
+.prio-rank { font-size: 14px; font-weight: 700; color: var(--muted); padding-left: 2px; }
+.prio-arrow { color: var(--muted); font-size: 15px; }
+
+/* ========= RPG 主支线解锁流水线画布（Quest Pipeline Map） ========= */
+.quest-board {
+  background-color: var(--canvas-bg);
+  background-image: radial-gradient(var(--canvas-dot) 1px, transparent 1px);
+  background-size: 18px 18px;
+  border: 1px solid var(--line-strong);
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.quest-zone-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+.zone-tag {
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 14px;
+  -webkit-text-stroke: 0.2px currentColor;
+}
+.zone-tag.is-sub {
+  background: var(--surface-2);
+  color: var(--ink);
+  border: 1px solid var(--line-strong);
+}
+
+/* 主线横向三关 + 枢纽 */
+.main-quest-track {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 34px minmax(0, 1fr) 34px 168px 34px minmax(0, 1fr);
+  align-items: center;
+  gap: 0;
+}
+.quest-connector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--wire-main);
+}
+.quest-connector svg { width: 34px; height: 20px; display: block; }
+.quest-hub {
+  background: var(--surface-2);
+  border: 1.5px dashed var(--wire-main);
+  border-radius: 10px;
+  padding: 12px 10px;
+  text-align: center;
+  font-size: 15px;
+  color: var(--ink-soft);
+}
+.quest-hub-title { font-size: 16px; margin-bottom: 2px; }
+
+/* 支线解锁树：左侧竖向主干连线 + 四条战线 */
+.side-quests-wrap {
+  position: relative;
+  padding-left: 22px;
+  border-left: 2px solid var(--wire);
+  margin-left: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.lane-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+}
+.lane-row::before {
+  content: "";
+  position: absolute;
+  left: -22px;
+  top: 50%;
+  width: 18px;
+  height: 2px;
+  background: var(--wire);
+}
+.lane-badge {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: var(--card);
+  border: 1px solid var(--line-strong);
+}
+.lane-name { font-size: 16px; }
+.lane-sub { font-size: 14px; color: var(--muted); }
+.lane-nodes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.lane-arrow {
+  color: var(--wire);
+  display: inline-flex;
+  align-items: center;
+}
+.lane-arrow svg { width: 22px; height: 16px; display: block; }
+
+/* 单个关卡节点卡 */
+.q-node {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 228px;
+  flex: 1 1 228px;
+  max-width: 310px;
+  padding: 11px 13px;
+  text-align: left;
+  background: var(--card);
+  border: 1.5px solid var(--line-strong);
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(24, 21, 18, 0.05);
+  cursor: pointer;
+}
+.main-quest-track .q-node { max-width: none; border-width: 2px; }
+.q-node:hover { border-color: var(--ink-soft); background: var(--card); transform: translateY(-1px); }
+.q-node.is-selected {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 2px var(--ink), 0 4px 12px rgba(24, 21, 18, 0.1);
+}
+.q-node.is-hot { border-color: var(--hot); }
+.q-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; width: 100%; }
+.q-title { font-size: 17px; line-height: 1.25; }
+.q-hero {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding-top: 2px;
+}
+.q-model-box { min-width: 0; flex: 1; }
+.q-model {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+.q-sub { font-size: 14px; color: var(--muted); display: flex; align-items: center; gap: 6px; margin-top: 1px; }
+
+/* 关卡详情装备栏（选中节点后展示备选与封禁） */
+.quest-inspector {
+  background: var(--card);
+  border: 1.5px solid var(--ink);
+  border-radius: 10px;
+  padding: 13px 16px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 20px;
+}
+.ins-head { display: flex; align-items: center; gap: 10px; }
+.ins-title { font-size: 19px; }
+.ins-slots { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
+.ins-group { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.ins-label { font-size: 14px; color: var(--muted); }
+
+/* Tables */
+.table-wrap {
+  background: var(--card);
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  overflow-x: auto;
+  max-width: 100%;
+}
+table { width: 100%; border-collapse: collapse; font-size: 16px; }
+th, td { text-align: left; padding: 10px 9px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+tbody tr:last-child td { border-bottom: 0; }
+th { color: var(--muted); font-weight: 400; font-size: 15px; white-space: nowrap; background: var(--surface-2); }
+td.num, th.num { text-align: right; }
+.sort-btn {
+  border: 0;
+  padding: 0;
+  min-height: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 15px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.sort-btn:hover { background: transparent; color: var(--ink); }
+.sort-btn.is-active { color: var(--ink); font-weight: 700; }
+
+.route-table td { vertical-align: middle; }
+.task-name { font-size: 18px; white-space: nowrap; }
+.chip-group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.model-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 3px 9px 3px 5px;
+  border-radius: 6px;
+  background: var(--paper);
+  border: 1px solid var(--line-strong);
+  font-size: 16px;
+  white-space: nowrap;
+}
+.model-pill.is-primary {
+  background: var(--card);
+  border: 1.5px solid var(--ink-soft);
+}
+.eff-tag {
+  font-size: 14px;
+  font-weight: 700;
+  padding: 0 5px;
+  border-radius: 3px;
+  background: var(--surface-2);
+  color: var(--ink);
+}
+.eff-tag.is-ultra { background: var(--ultra); color: #fff; }
+.eff-tag.is-high { background: var(--ink); color: var(--paper); }
+
+/* Model Capabilities Interactive Rows */
+.cap-row { cursor: pointer; }
+.cap-row:hover td { background: color-mix(in srgb, var(--surface-2) 55%, transparent); }
+.model-cell { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+.model-id { font-size: 18px; font-weight: 700; color: var(--ink); letter-spacing: -0.01em; }
+.eff-switch { display: inline-flex; flex-wrap: nowrap; gap: 4px; }
+.eff-btn {
+  padding: 2px 7px;
+  min-height: 24px;
+  font-size: 14px;
+  border-radius: 4px;
+  border: 1px solid var(--line-strong);
+  background: var(--paper);
+  color: var(--muted);
+}
+.eff-btn.is-on {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+  font-weight: 700;
+}
+.aa-cell { display: inline-flex; align-items: center; justify-content: flex-end; gap: 9px; min-width: 96px; }
+.aa-score { font-size: 21px; font-weight: 700; color: var(--ink); min-width: 24px; text-align: right; }
+.aa-bar { width: 52px; height: 7px; background: var(--surface-2); border-radius: 4px; overflow: hidden; display: inline-block; }
+.aa-bar > span { display: block; height: 100%; background: var(--ultra); border-radius: 4px; }
+.cost-val { font-size: 17px; font-weight: 700; }
+.q-mini { display: inline-flex; align-items: center; gap: 6px; justify-content: flex-end; }
+.q-bar { width: 38px; height: 6px; background: var(--surface-2); border-radius: 3px; overflow: hidden; display: inline-block; }
+.q-bar > span { display: block; height: 100%; background: var(--ink); }
+.q-bar.is-warn > span { background: var(--warn); }
+.q-bar.is-hot > span { background: var(--hot); }
+
+.detail-row td {
+  background: var(--paper);
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line-strong);
+}
+.detail-grid { display: grid; gap: 8px; font-size: 16px; }
+.eff-cards { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
+.eff-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 14px;
+}
+
+details.fold {
+  margin-top: 22px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+details.fold summary { cursor: pointer; color: var(--muted); font-size: 16px; }
+.banner {
+  border: 1px solid var(--hot);
+  background: var(--hot-bg);
+  color: var(--hot);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  font-size: 16px;
+}
+.more-btn { margin-top: 10px; width: 100%; font-size: 15px; color: var(--muted); border-style: dashed; }
+
+@media (max-width: 980px) {
+  .main-quest-track {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+  .quest-connector { transform: rotate(90deg); height: 22px; }
+  .lane-row { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+}
+@media (max-width: 820px) {
+  .spend-split { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 720px) {
+  main { padding: 14px 12px 40px; width: 100%; max-width: 100%; }
+  h1 { font-size: 24px; }
+  h2 { font-size: 20px; }
+  .topbar { position: static; gap: 10px; }
+  .nav-tabs { width: 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .nav-tabs button { justify-content: center; padding: 8px 4px; font-size: 16px; min-height: 40px; }
+  .tools { width: 100%; justify-content: space-between; }
+  .tools button { min-height: 36px; }
+  #tier-filters { flex-wrap: wrap; width: 100%; }
+  #tier-filters button { flex: 1 1 auto; min-height: 34px; border-bottom: 1px solid var(--line); }
+  .tight-grid, .kpi-row, .accounts { grid-template-columns: minmax(0, 1fr); }
+  .quest-board { padding: 14px 12px; }
+  .side-quests-wrap { margin-left: 6px; padding-left: 14px; }
+  .q-node { max-width: none; width: 100%; }
+  .eff-switch { flex-wrap: wrap; }
+  .eff-btn { min-height: 24px; padding: 2px 6px; }
+  th, td { padding: 9px 8px; }
+  .task-name { white-space: normal; min-width: 6.5em; }
+}
+  .workspace-note {margin:14px 0;padding:10px 14px;border-inline-start:3px solid var(--ultra);background:var(--surface-2);color:var(--ink-soft)}
+  .workspace-grid {display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,275px),1fr));gap:14px;margin:12px 0 24px}
+  .workspace-box {border:1px solid var(--line);border-radius:8px;background:var(--card);padding:16px;min-width:0;overflow-wrap:anywhere}
+  .workspace-box h3 {margin:0 0 8px}.workspace-box p {color:var(--muted)}
+  .workspace-box form {display:flex;flex-wrap:wrap;align-items:end;gap:8px;margin:12px 0}
+  .workspace-box label {display:grid;gap:4px;font-size:.9em;min-width:0}
+  .workspace-box input,.workspace-box select {font:inherit;max-width:100%;min-width:0;background:var(--canvas-bg);color:var(--ink);border:1px solid var(--line-strong);border-radius:4px;padding:6px}
+  .workspace-box button {border:1px solid var(--line-strong);border-radius:5px;padding:6px 10px;background:var(--surface-2);color:var(--ink)}
+  #work-msg {color:var(--hot);min-height:1em}.workspace-box details {margin:12px 0}
+
+.dot.is-neutral { background: var(--muted); }
+.ds-caption {color:var(--ink-soft);font-size:15px}
+.ds-summary {margin:24px 0;padding:18px;border:1px solid var(--line-strong);border-radius:10px;background:var(--card)}
+.ds-summary .box-head {display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.ds-summary dl {display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:16px;margin:16px 0 0}
+.ds-summary dt {color:var(--ink-soft);font-size:15px}.ds-summary dd {margin:2px 0 0;font-size:21px;font-weight:700;font-variant-numeric:tabular-nums}
+[hidden] {display:none !important}
+@media(max-width:720px) {
+  .nav-tabs {grid-template-columns:repeat(2,minmax(0,1fr))}.nav-tabs:has([data-tab="devices"][hidden]) {grid-template-columns:repeat(3,minmax(0,1fr))}
+  .nav-tabs button,.tools button,.health-pill,#tier-filters button,.eff-btn,.more-btn,.sort-btn,.workspace-box button,.workspace-box input,.workspace-box select {min-height:44px}
+  h1 {white-space:normal;overflow-wrap:anywhere}.q-node {min-width:0;max-width:100%}.q-title,.q-hero {white-space:normal;overflow-wrap:anywhere}
+  .quest-inspector>* ,.ins-group,.ins-group .model-pill {min-width:0;max-width:100%}
+  .ins-group .model-pill,.q-sub {flex-wrap:wrap;white-space:normal;overflow-wrap:anywhere}
+  .q-model {white-space:normal;overflow-wrap:anywhere}
+  .workspace-box label,.workspace-box form {max-width:100%}.table-wrap {overscroll-behavior-x:contain}
+  .ds-summary dl {grid-template-columns:repeat(2,minmax(0,1fr))}.ds-summary dd {font-size:19px}
+}
+</style>
+</head>
+<body>
+<main>
+  <header class="topbar">
+    <div class="brand">
+      <h1>模型用量</h1>
+      <button type="button" class="health-pill" id="health-btn" aria-expanded="false">
+        <span class="dot" id="health-dot"></span>
+        <span id="health-text">读取中</span>
+      </button>
+    </div>
+    <div class="nav-tabs" id="tabs" role="tablist" aria-label="视图切换">
+      <button type="button" role="tab" data-tab="overview" aria-selected="true">用量</button>
+      <button type="button" role="tab" data-tab="dispatch" aria-selected="false">任务分工</button>
+      <button type="button" role="tab" data-tab="models" aria-selected="false">模型能力</button>
+      <button type="button" role="tab" data-tab="devices" aria-selected="false">设备与设置</button>
+    </div>
+    <div class="tools">
+      <div class="seg" id="range" role="group" aria-label="时间范围">
+        <button type="button" data-range="24h">24 小时</button>
+        <button type="button" data-range="7d" aria-pressed="true">7 天</button>
+        <button type="button" data-range="all">全部</button>
+      </div>
+      <button type="button" id="refresh">刷新</button>
+      <button type="button" id="logout" hidden>退出</button>
+    </div>
+  </header>
+
+  <section class="drawer" id="sampling-drawer" hidden></section>
+  <p id="work-msg" role="status" aria-live="polite" hidden></p>
+  <div id="app"></div>
+</main>
+
+<script src="./demo-data/demo-snapshots.js"></script>
+<script src="./vendor-icons.js"></script>
+<script src="./workspace-ui.js"></script>
+<script>
+const app = document.querySelector("#app");
+const tabsBox = document.querySelector("#tabs");
+const rangeBox = document.querySelector("#range");
+const healthBtn = document.querySelector("#health-btn");
+const healthDot = document.querySelector("#health-dot");
+const healthText = document.querySelector("#health-text");
+const drawer = document.querySelector("#sampling-drawer");
+const logoutBtn = document.querySelector("#logout");
+
+const VALID_TABS = new Set(["overview", "dispatch", "models", "devices"]);
+let activeTab = VALID_TABS.has(location.hash.slice(1)) ? location.hash.slice(1) : "overview";
+let range = localStorage.getItem("usage-range") || "7d";
+let dispatchView = localStorage.getItem("dispatch-view") || "flow";
+let selectedQuestIndex = 1;
+let latestData = null;
+let showAllSpendModels = false;
+let modelTierFilter = "all";
+let modelSort = { key: "aa", dir: "desc" };
+const selectedEffort = {};
+const expandedModels = new Set();
+
+function esc(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (ch) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  }[ch]));
+}
+function vIcon(target, size) {
+  if (window.UsageVendorIcons && window.UsageVendorIcons.badgeHtml) {
+    return window.UsageVendorIcons.badgeHtml(target, size || 24);
+  }
+  return "";
+}
+function pct(fraction) {
+  if (fraction == null || Number.isNaN(fraction)) return "—";
+  const n = fraction * 100;
+  return (Math.abs(n - Math.round(n)) < 0.05 ? String(Math.round(n)) : n.toFixed(1)) + "%";
+}
+function heat(fraction) {
+  if (fraction != null && fraction >= 0.75) return "is-hot";
+  if (fraction != null && fraction >= 0.5) return "is-warn";
+  return "";
+}
+
+function chipHeat(fraction) {
+  if (fraction == null) return "";
+  if (fraction >= 0.8) return "chip-hot";
+  if (fraction >= 0.5) return "chip-warn";
+  return "chip-ok";
+}
+function money(n) {
+  if (n == null) return "—";
+  if (n >= 100) return "$" + Math.round(n).toLocaleString("en-US");
+  if (n >= 1) return "$" + n.toFixed(2);
+  if (n > 0 && n < 0.01) return "< $0.01";
+  if (!n) return "$0";
+  return "$" + n.toFixed(2);
+}
+function parseMoney(str) {
+  if (!str) return null;
+  const n = Number(String(str).replace(/[^0-9.]/g, ""));
+  return Number.isFinite(n) ? n : null;
+}
+function tokens(n) {
+  if (!n) return "0";
+  if (n >= 1e8) return (n / 1e8).toFixed(2) + " 亿";
+  if (n >= 1e4) return (n / 1e4).toFixed(n >= 1e6 ? 0 : 1) + " 万";
+  return n.toLocaleString("zh-CN");
+}
+function clock(ms) {
+  if (!ms) return "—";
+  return new Date(ms).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit", hour12: false });
+}
+function whenShort(ms) {
+  if (!ms) return "—";
+  return new Date(ms).toLocaleString("zh-CN", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false });
+}
+function readingTime() {
+  return latestData?.workspace?.demo ? latestData.fetchedAt : Date.now();
+}
+function remainCompact(ms) {
+  if (!ms) return "";
+  const delta = ms - readingTime();
+  if (delta <= 0) return "即将重置";
+  const min = Math.round(delta / 60000);
+  if (min < 60) return min + " 分钟后重置";
+  const h = Math.floor(min / 60);
+  const remMin = min % 60;
+  if (h < 48) return remMin ? h + " 小时 " + remMin + " 分钟后重置" : h + " 小时后重置";
+  const d = Math.floor(h / 24);
+  const remH = h % 24;
+  return remH ? d + " 天 " + remH + " 小时后重置" : d + " 天后重置";
+}
+function ageCompact(ms) {
+  if (!ms) return "无读数";
+  const min = Math.max(0, Math.round((readingTime() - ms) / 60000));
+  if (min < 2) return "刚刚";
+  if (min < 60) return min + " 分钟前";
+  const h = Math.floor(min / 60);
+  return h < 48 ? h + " 小时前" : Math.floor(h / 24) + " 天前";
+}
+function statusLabel(st) {
+  if (st === "fresh") return "正常";
+  if (st === "stale") return "过期";
+  if (st === "empty") return "无读数";
+  return st || "正常";
+}
+function shortEmail(email) {
+  if (!email) return "";
+  return email.includes("@") ? email.split("@")[0] : email;
+}
+function miniSpark(points) {
+  if (!points || points.length < 2) return "";
+  const w = 88, h = 24, pad = 2;
+  const cmd = points.map((pt, idx) => {
+    const x = pad + (w - pad * 2) * idx / (points.length - 1);
+    const y = pad + (h - pad * 2) * (1 - Math.min(1, Math.max(0, pt.used)));
+    return (idx ? "L" : "M") + x.toFixed(1) + "," + y.toFixed(1);
+  }).join(" ");
+  return '<svg class="mini-spark" viewBox="0 0 ' + w + " " + h + '" aria-hidden="true"><path d="' + cmd + '"/></svg>';
+}
+
+function primaryTierChip(floorRaw) {
+  const s = String(floorRaw || "").toLowerCase();
+  if (s.includes("ultra")) return '<span class="chip chip-ultra">ultra</span>';
+  if (s.includes("max")) return '<span class="chip chip-ultra">max</span>';
+  if (s.includes("xhigh")) return '<span class="chip chip-ultra">xhigh</span>';
+  if (s.includes("high")) return '<span class="chip chip-ink">high</span>';
+  if (s.includes("medium")) return '<span class="chip">medium</span>';
+  if (s.includes("low")) return '<span class="chip">low</span>';
+  return '<span class="chip">' + esc(floorRaw) + "</span>";
+}
+
+function renderTierBadges(raw) {
+  const text = String(raw || "").trim();
+  if (!text) return '<span class="muted">—</span>';
+  const tokensFound = [];
+  const rx = /\b(ultra|max|xhigh|high|medium|low|minimal)\b|(AA\s*[≥>=]+\s*\d+)/gi;
+  let m;
+  while ((m = rx.exec(text)) !== null) {
+    tokensFound.push(m[0]);
+  }
+  if (!tokensFound.length) {
+    return '<span class="chip">' + esc(text) + "</span>";
+  }
+  return '<div class="chip-group">' + tokensFound.map((tok) => {
+    const lower = tok.toLowerCase();
+    let cls = "chip";
+    if (lower.includes("ultra") || lower === "max" || lower === "xhigh") cls += " chip-ultra";
+    else if (lower.includes("high")) cls += " chip-ink";
+    return '<span class="' + cls + '">' + esc(tok) + "</span>";
+  }).join("") + "</div>";
+}
+
+function extractHeroModel(raw) {
+  const s = String(raw || "").trim();
+  const codeMatches = [...s.matchAll(/`([^`]+)`/g)];
+  if (codeMatches.length) {
+    const sel = codeMatches[codeMatches.length - 1][1];
+    const [prov, rest] = sel.includes("/") ? sel.split("/", 2) : ["", sel];
+    const [mod, eff] = (rest || "").includes(":") ? rest.split(":", 2) : [rest, ""];
+    return { iconKey: prov || mod, model: mod, effort: eff };
+  }
+  return { iconKey: s, model: s, effort: "", note: "" };
+}
+
+function formatModelRef(raw, prefix) {
+  const s = String(raw || "").trim();
+  if (!s || s === "—" || s === "无" || s === "-") return "";
+  const parts = s.split(/[；;]/).map((p) => p.trim()).filter(Boolean);
+  return parts.map((part) => {
+    if (part === "无实测") return prefix === "avoid" ? "" : '<span class="muted">待测</span>';
+    const codeMatch = part.match(/`([^`]+)`/);
+    if (codeMatch) {
+      const sel = codeMatch[1];
+      const note = part.replace(codeMatch[0], "").replace(/[（）()]/g, " ").trim();
+      const [prov, rest] = sel.includes("/") ? sel.split("/", 2) : ["", sel];
+      const [mod, eff] = (rest || "").includes(":") ? rest.split(":", 2) : [rest, ""];
+      const icon = vIcon(mod || prov, 18);
+      const effCls = eff === "ultra" || eff === "max" || eff === "xhigh" ? "eff-tag is-ultra" : eff === "high" ? "eff-tag is-high" : "eff-tag";
+      if (prefix === "avoid") {
+        return '<span class="chip chip-hot">× ' + esc(mod) + (eff ? ":" + esc(eff) : "") + "</span>";
+      }
+      const viaHint = prov || note;
+      return '<span class="model-pill' + (prefix === "pref" ? " is-primary" : "") + '">' +
+        icon +
+        '<span class="strong-en">' + esc(mod) + "</span>" +
+        (eff ? '<span class="' + effCls + '">' + esc(eff) + "</span>" : "") +
+        (viaHint ? '<span class="muted">· ' + esc(viaHint) + "</span>" : "") +
+        "</span>";
+    }
+    if (prefix === "avoid") {
+      const shortAvoid = part.replace(/（[^）]*）/g, "").trim();
+      return '<span class="chip chip-hot">× ' + esc(shortAvoid) + "</span>";
+    }
+    const ultraHit = /\bultra\b/i.test(part);
+    const cleaned = part.replace(/`([^`]+)`/g, "$1").trim();
+    const gIcon = vIcon(cleaned, 18);
+    return '<span class="model-pill' + (prefix === "pref" ? " is-primary" : "") + '">' + gIcon + '<span class="' + (ultraHit ? "strong-en" : "") + '">' + esc(cleaned) + "</span></span>";
+  }).join("");
+}
+
+function renderSamplingDrawer(data) {
+  const sampling = data.workspace?.demo
+    ? data.accounts.map(a => ({...a, recordedAt: a.dataAt || a.fetchedAt, status: "fresh"}))
+    : (data.dispatch?.sampling || []);
+  const last = Math.max(0,...sampling.map(r => Number(r.recordedAt) || 0));
+  healthDot.className = "dot is-neutral";
+  healthText.textContent = last ? "最近采样 · " + whenShort(last) : "采样记录";
+  let html = '<div class="drawer-head"><h3>采样状态</h3><span class="muted">' + esc(whenShort(data.fetchedAt)) + "</span></div>";
+  if (!sampling.length) {
+    html += '<p class="muted">暂无数据</p>';
+  } else {
+    html += '<div class="table-wrap"><table><thead><tr><th>渠道</th><th>账号</th><th>机器</th><th>最后读数</th><th>状态</th></tr></thead><tbody>';
+    for (const row of sampling) {
+      const st = row.status || "fresh";
+      const readingLabel = row.recordedAt ? (st === "fresh" ? "本次读数" : "历史读数") : "待采样";
+      const stCls = st === "fresh" ? "chip-ok" : st === "stale" ? "chip-warn" : "chip-hot";
+      html += "<tr><td>" + vIcon(row.provider, 20) + ' <span style="margin-left:6px">' + esc(row.label) + '</span></td><td class="muted" title="' + esc(row.email || "") + '">' + esc(shortEmail(row.email) || "—") + '</td><td class="muted">' + esc((row.hosts || []).join("、") || "—") + '</td><td class="num">' + esc(row.recordedAt ? whenShort(row.recordedAt) : "—") + '</td><td><span class="chip ' + stCls + '">' + esc(readingLabel) + "</span></td></tr>";
+    }
+    html += "</tbody></table></div>";
+  }
+  drawer.innerHTML = html;
+}
+
+function renderOverview(data) {
+  const parts = [];
+  const alerts = (data.tight || []).filter((item) => item.used != null && item.used >= 0.45);
+  if (alerts.length) {
+    parts.push('<div class="sec-head"><h2>需关注</h2><span class="muted num">' + alerts.length + " 项</span></div>");
+    parts.push('<section class="tight-grid">');
+    for (const item of alerts) {
+      const kl = heat(item.used);
+      const coupon = item.resets && item.resets.usable ? '<span class="chip">重置券 ×' + item.resets.usable + "</span>" : "";
+      parts.push(
+        '<article class="alert-card ' + kl + '">' +
+        '<div class="alert-top"><span style="display:inline-flex;align-items:center;gap:6px">' + vIcon(item.provider, 18) + "<span>" + esc(item.label) + " · " + esc(item.window) + '</span></span><span title="' + esc(item.email || "") + '">' + esc(shortEmail(item.email)) + "</span></div>" +
+        '<div class="alert-pct num ' + kl + '">' + pct(item.used) + "</div>" +
+        '<div class="alert-foot"><span data-reset="' + (item.resetsAt || "") + '">' + esc(remainCompact(item.resetsAt)) + "</span>" + coupon + "</div>" +
+        "</article>"
+      );
+    }
+    parts.push("</section>");
+  }
+
+  const spend = data.spend || {};
+  const span = spend.from ? whenShort(spend.from) + " – " + whenShort(spend.to) : "—";
+  const agentChips = (spend.byAgent || []).map((a) => {
+    const label = a.agentType === "subagent" ? "子代理" : a.agentType === "main" ? "主会话" : a.agentType;
+    return '<span class="chip num">' + esc(label) + " " + (a.requests || 0).toLocaleString("zh-CN") + " · " + money(a.cost) + "</span>";
+  }).join(" ");
+  const accounts = data.accounts || [];
+  parts.push('<div class="sec-head"><h2>账号额度</h2><span class="muted num">' + accounts.length + " 个账号</span></div>");
+  parts.push('<section class="accounts">');
+  for (const account of accounts) {
+    const stamp = account.dataAt || account.fetchedAt || 0;
+    const badges = account.plan ? '<span class="chip">' + esc(account.plan) + '</span>' : '';
+    const cardHosts = (account.hosts || []).map((h) => '<span class="chip chip-host">' + esc(h) + "</span>").join("");
+    const ageStr = ageCompact(stamp);
+    const ageCls = account.stored ? "chip chip-warn" : "muted num";
+    let body = "";
+    if (account.windows && account.windows.length) {
+      for (const win of account.windows) {
+        const kl = heat(win.used);
+        const name = win.name || win.label || win.window;
+        body += '<div class="win-row"><div class="win-main"><div>' +
+          '<div class="win-top"><span>' + esc(name) + '</span><span class="win-pct num ' + kl + '">' + pct(win.used) + "</span></div>" +
+          '<div class="meter ' + kl + '"><span style="width:' + Math.max(0, Math.min(100, (win.used || 0) * 100)).toFixed(1) + '%"></span></div>' +
+          '<div class="win-meta"><span data-reset="' + (win.resetsAt || "") + '">' + esc(remainCompact(win.resetsAt)) + "</span></div>" +
+          "</div>" + miniSpark(win.points) + "</div></div>";
+      }
+    } else {
+      body = '<p class="muted">暂无读数</p>';
+    }
+    const footBits = [];
+    if (account.resets && account.resets.available) {
+      const usable = account.resets.usable ?? account.resets.available;
+      footBits.push("重置券 ×" + usable);
+    }
+    if (account.sessionRequests) {
+      footBits.push(money(account.sessionCost) + " · " + account.sessionRequests.toLocaleString("zh-CN") + " 次");
+    }
+    const foot = footBits.length ? '<div class="card-foot num">' + footBits.map(esc).join("<span>·</span>") + "</div>" : "";
+    parts.push(
+      '<article class="card">' +
+      '<div class="card-head"><div class="card-title">' + vIcon(account.provider, 24) + "<h3>" + esc(account.label) + "</h3>" + badges + '<span class="acct-id" title="' + esc(account.email || "") + '">' + esc(shortEmail(account.email)) + "</span>" + cardHosts + '</div><span class="' + ageCls + '" data-age="' + stamp + '">' + esc(ageStr) + "</span></div>" +
+      body + foot + "</article>"
+    );
+  }
+  parts.push("</section>");
+
+  if (data.stale && data.stale.length) {
+    parts.push('<details class="fold"><summary>历史额度窗口 (' + data.stale.length + ')</summary><div class="accounts" style="margin-top:12px">');
+    for (const item of data.stale) {
+      parts.push('<article class="card"><h3>' + esc(item.label) + " · " + esc(item.window) + '</h3><div class="alert-pct num">' + pct(item.used) + '</div><div class="muted">' + esc(whenShort(item.lastAt)) + "</div></article>");
+    }
+    parts.push("</div></details>");
+  }
+  const local = (spend.byModel || []).filter(r => r.localInference || r.provider === "local-deepseek");
+  if (local.length) {
+    const sum = field => local.every(r => Number.isFinite(r[field])) ? local.reduce((n,r)=>n+r[field],0).toLocaleString('zh-CN') : '—';
+    const cells = [['requests','请求'],['inputTokens','输入 token'],['outputTokens','输出 token'],['cacheReadTokens','缓存读取 token'],['cacheWriteTokens','缓存写入 token']];
+    parts.push('<section class="ds-summary"><div class="box-head"><h2>本地 DeepSeek</h2><span class="chip">无配额上限</span></div><p class="ds-caption">'+esc(local.map(r=>r.model).join('、'))+' · 当前时间范围的实际消耗</p><dl>'+cells.map(([field,label])=>'<div><dt>'+label+'</dt><dd>'+sum(field)+'</dd></div>').join('')+'</dl></section>');
+  }
+  parts.push('<div class="sec-head"><h2>会话消耗</h2><div class="chip-group">' + agentChips + "</div></div>");
+  parts.push(
+    '<div class="kpi-row">' +
+    '<div class="kpi-card"><div class="kpi-val num">' + money(spend.cost || 0) + '</div><div class="kpi-sub">目录价 · ' + esc(span) + "</div></div>" +
+    '<div class="kpi-card"><div class="kpi-val num">' + (spend.requests || 0).toLocaleString("zh-CN") + '</div><div class="kpi-sub">请求' + (spend.failed ? " · 错 " + spend.failed : "") + "</div></div>" +
+    '<div class="kpi-card"><div class="kpi-val num">' + (spend.cacheRate == null ? "—" : pct(spend.cacheRate)) + '</div><div class="kpi-sub">缓存命中 · 输出 ' + tokens(spend.outputTokens || 0) + "</div></div>" +
+    "</div>"
+  );
+
+  const models = spend.byModel || [];
+  const days = spend.byDay || [];
+  if (models.length || days.length) {
+    parts.push('<div class="spend-split">');
+    parts.push('<div class="panel-box"><div class="box-head"><h3>模型明细</h3><span class="muted num">' + models.length + " 项</span></div>");
+    if (!models.length) {
+      parts.push('<p class="muted">暂无记录</p>');
+    } else {
+      const visible = showAllSpendModels ? models : models.slice(0, 10);
+      parts.push('<div class="table-wrap"><table><thead><tr><th>模型</th><th>渠道</th><th class="num">次数</th><th class="num">输出</th><th class="num">缓存</th><th class="num">目录价</th></tr></thead><tbody>');
+      for (const row of visible) {
+        const billed = (row.cacheReadTokens || 0) + (row.inputTokens || 0);
+        const cache = billed ? pct(row.cacheReadTokens / billed) : "—";
+        parts.push('<tr><td><div class="model-cell">' + vIcon(row.model || row.provider, 22) + '<span class="strong-en">' + esc(row.model) + '</span></div></td><td class="muted">' + esc(row.providerLabel) + '</td><td class="num">' + row.requests.toLocaleString("zh-CN") + '</td><td class="num">' + tokens(row.outputTokens) + '</td><td class="num">' + cache + '</td><td class="num strong-en">' + money(row.cost) + "</td></tr>");
+      }
+      parts.push("</tbody></table></div>");
+      if (models.length > 10) {
+        const rest = models.length - 10;
+        parts.push('<button type="button" class="more-btn" id="toggle-spend-models">' + (showAllSpendModels ? "收起低消耗项" : "展开其余 " + rest + " 项") + "</button>");
+      }
+    }
+    parts.push("</div>");
+
+    parts.push('<div class="panel-box"><div class="box-head"><h3>按日</h3></div>');
+    if (!days.length) {
+      parts.push('<p class="muted">—</p>');
+    } else {
+      const max = Math.max(...days.map((d) => d.cost || 0), 0.01);
+      parts.push('<div class="days">');
+      for (const day of days) {
+        parts.push('<div class="day"><span class="muted num">' + esc(day.day.slice(5)) + '</span><div class="bar"><span style="width:' + ((day.cost / max) * 100).toFixed(1) + '%"></span></div><span class="num strong-en" style="text-align:right">' + money(day.cost) + "</span></div>");
+      }
+      parts.push("</div>");
+    }
+    parts.push("</div></div>");
+  }
+
+  return parts.join("");
+}
+
+function renderQuestNode(row) {
+  if (!row) return "";
+  const hero = extractHeroModel(row.preferred);
+  const selected = selectedQuestIndex === row.index;
+  const effBadge = hero.effort
+    ? '<span class="eff-tag ' + (hero.effort === "ultra" || hero.effort === "max" || hero.effort === "xhigh" ? "is-ultra" : hero.effort === "high" ? "is-high" : "") + '">' + esc(hero.effort) + "</span>"
+    : "";
+  const quotaChip = row.preferredUsed != null
+    ? '<span class="chip num ' + chipHeat(row.preferredUsed) + '">' + pct(row.preferredUsed) + "</span>"
+    : "";
+  const shortTask = String(row.task || "").replace(/（[^）]*）/g, "").trim();
+  const altCount = row.alternate && row.alternate !== "无实测" && row.alternate !== "—" ? row.alternate.split(/[；;]/).filter(Boolean).length : 0;
+  const avoidCount = row.avoid && row.avoid !== "无实测" && row.avoid !== "—" ? row.avoid.split(/[；;、]/).filter(Boolean).length : 0;
+  const metaBits = [];
+  if (altCount) metaBits.push("备选 ×" + altCount);
+  if (avoidCount) metaBits.push("禁用 ×" + avoidCount);
+
+  return (
+    '<button type="button" class="q-node' + (selected ? " is-selected" : "") + (row.hot ? " is-hot" : "") + '" data-quest-idx="' + row.index + '">' +
+    '<div class="q-top"><span class="q-title strong-zh">' + esc(shortTask) + "</span>" + primaryTierChip(row.floor) + "</div>" +
+    '<div class="q-hero">' + vIcon(hero.iconKey, 30) +
+    '<div class="q-model-box"><span class="q-model">' + esc(hero.model) + " " + effBadge + '</span><div class="q-sub">' + esc(metaBits.join(" · ") || "建议型号") + "</div></div>" +
+    quotaChip + "</div></button>"
+  );
+}
+
+function renderQuestMap(routes) {
+  const byIdx = new Map(routes.map((r) => [r.index, r]));
+  const active = byIdx.get(selectedQuestIndex) || routes[0];
+  const groups = new Map();
+  for (const row of routes) {
+    const label = row.floor || "任务";
+    if (!groups.has(label)) groups.set(label, []);
+    groups.get(label).push(row);
+  }
+  const altHtml = active ? formatModelRef(active.alternate, "alt") : "";
+  const avoidHtml = active ? formatModelRef(active.avoid, "avoid") : "";
+  const inspector = active
+    ? '<div class="quest-inspector">' +
+      '<div class="ins-head"><span class="zone-tag">关卡 #' + active.index + '</span><span class="ins-title strong-zh">' + esc(active.task) + "</span>" + renderTierBadges(active.floor) + "</div>" +
+      '<div class="ins-slots">' +
+      '<div class="ins-group"><span class="ins-label">主力出战</span>' + formatModelRef(active.preferred, "pref") + "</div>" +
+      '<div class="ins-group"><span class="ins-label">备选支线</span>' + (altHtml || '<span class="muted">无</span>') + "</div>" +
+      (avoidHtml ? '<div class="ins-group"><span class="ins-label">禁用</span>' + avoidHtml + "</div>" : "") +
+      "</div></div>"
+    : "";
+
+  const lanes = Array.from(groups, ([label, rows]) => '<section class="lane-row"><div class="lane-badge"><strong>' + esc(label) + '</strong></div><div class="lane-nodes">' + rows.map(renderQuestNode).join('') + '</div></section>');
+  return '<div class="quest-board"><div class="side-quests-wrap">' + lanes.join('') + '</div>' + inspector + '</div>';
+
+}
+
+function renderDispatch(data) {
+  const dispatch = data.dispatch || {};
+  const channels = dispatch.channels || [];
+  const routes = dispatch.routes || [];
+  const parts = [];
+
+  const viewSwitch =
+    '<div class="seg" role="group" aria-label="分工视图">' +
+    '<button type="button" data-dispatch-view="flow" aria-pressed="' + (dispatchView === "flow") + '">任务流图</button>' +
+    '<button type="button" data-dispatch-view="table" aria-pressed="' + (dispatchView === "table") + '">矩阵表</button>' +
+    "</div>";
+
+  parts.push('<div class="sec-head"><h2>任务分工</h2>' + viewSwitch + "</div>");
+  if (channels.length) {
+    parts.push('<div class="prio-strip"><span class="prio-label">渠道优先级</span>');
+    channels.forEach((ch, idx) => {
+      if (idx > 0) parts.push('<span class="prio-arrow">→</span>');
+      const quotaChip = ch.used != null
+        ? '<span class="chip num ' + chipHeat(ch.used) + '">' + pct(ch.used) + "</span>"
+        : "";
+      const tagChip = ch.badge
+        ? '<span class="chip ' + (ch.badge === "ultra" ? "chip-ultra" : "") + '">' + esc(ch.badge) + "</span>"
+        : "";
+      parts.push('<span class="prio-item"><span class="prio-rank num">' + ch.rank + "</span>" + vIcon(ch.provider, 20) + '<span class="strong-zh">' + esc(ch.name) + "</span>" + quotaChip + tagChip + "</span>");
+    });
+    parts.push("</div>");
+  }
+
+  if (!routes.length) {
+    parts.push('<p class="muted">empty</p>');
+  } else if (dispatchView === "flow") {
+    parts.push(renderQuestMap(routes));
+  } else {
+    parts.push('<div class="table-wrap"><table class="route-table"><thead><tr><th>任务</th><th>最低档</th><th>首选</th><th>替代与禁用</th></tr></thead><tbody>');
+    for (const row of routes) {
+      const prefHtml = formatModelRef(row.preferred, "pref");
+      const quotaDot = row.preferredUsed != null
+        ? '<span class="chip num ' + chipHeat(row.preferredUsed) + '">' + pct(row.preferredUsed) + "</span>"
+        : "";
+      const hotBadge = row.hot ? '<span class="chip chip-hot">拥挤</span>' : "";
+      const altHtml = formatModelRef(row.alternate, "alt");
+      const avoidHtml = formatModelRef(row.avoid, "avoid");
+      parts.push(
+        "<tr>" +
+        '<td class="task-name strong-zh">' + esc(row.task) + "</td>" +
+        "<td>" + renderTierBadges(row.floor) + "</td>" +
+        '<td><div class="chip-group">' + prefHtml + quotaDot + hotBadge + "</div></td>" +
+        '<td><div class="chip-group">' + (altHtml || "") + (avoidHtml || "") + (!altHtml && !avoidHtml ? '<span class="muted">—</span>' : "") + "</div></td>" +
+        "</tr>"
+      );
+    }
+    parts.push("</tbody></table></div>");
+  }
+  return parts.join("");
+}
+
+function activeEffortRow(row) {
+  const efforts = row.efforts || [];
+  if (!efforts.length) {
+    return { effort: row.aaEffort || "", index: row.aaIndex, cost: row.aaCost, minutes: row.aaMinutes };
+  }
+  const wanted = selectedEffort[row.model];
+  if (wanted) {
+    const hit = efforts.find((e) => e.effort === wanted);
+    if (hit) return hit;
+  }
+  return efforts[0];
+}
+
+function matchesTierFilter(row) {
+  if (modelTierFilter === "all") return true;
+  const tiers = (row.efforts || []).map(e => e.effort);
+  if (row.aaEffort) tiers.push(row.aaEffort);
+  if (row.tier) tiers.push(...String(row.tier).toLowerCase().split(/[^a-z]+/));
+  return modelTierFilter === "top" ? tiers.some(t => ["ultra", "max", "xhigh"].includes(t)) : tiers.includes(modelTierFilter);
+}
+
+function renderModels(data) {
+  const dispatch = data.dispatch || {};
+  const rawCaps = dispatch.capabilities || [];
+  const filtered = rawCaps.filter(matchesTierFilter);
+
+  const sorted = [...filtered].sort((a, b) => {
+    const ea = activeEffortRow(a);
+    const eb = activeEffortRow(b);
+    let va, vb;
+    if (modelSort.key === "aa") {
+      va = ea.index ? Number(ea.index) : -1;
+      vb = eb.index ? Number(eb.index) : -1;
+    } else if (modelSort.key === "cost") {
+      va = parseMoney(ea.cost) ?? 9999;
+      vb = parseMoney(eb.cost) ?? 9999;
+    } else if (modelSort.key === "minutes") {
+      va = ea.minutes ? Number(ea.minutes) : 9999;
+      vb = eb.minutes ? Number(eb.minutes) : 9999;
+    } else if (modelSort.key === "calls") {
+      va = (a.mainRequests || 0) + (a.subRequests || 0);
+      vb = (b.mainRequests || 0) + (b.subRequests || 0);
+    } else if (modelSort.key === "quota") {
+      va = a.tightUsed ?? -1;
+      vb = b.tightUsed ?? -1;
+    }
+    if (va === vb) return a.model.localeCompare(b.model);
+    return modelSort.dir === "asc" ? va - vb : vb - va;
+  });
+
+  const filters = [
+    ["all", "全部"],
+    ["top", "ultra · max · xhigh"],
+    ["high", "high"],
+    ["medium", "medium"],
+    ["low", "low"],
+  ].map(([id, label]) =>
+    '<button type="button" data-tier-filter="' + id + '" aria-pressed="' + (modelTierFilter === id) + '">' + esc(label) + "</button>"
+  ).join("");
+
+  function sortHead(key, label, isNum) {
+    const active = modelSort.key === key;
+    const arrow = active ? (modelSort.dir === "asc" ? "↑" : "↓") : "";
+    return '<th class="' + (isNum ? "num" : "") + '"><button type="button" class="sort-btn ' + (active ? "is-active" : "") + '" data-sort="' + key + '">' + esc(label) + (arrow ? " " + arrow : "") + "</button></th>";
+  }
+
+  const parts = [];
+  parts.push(
+    '<div class="sec-head"><div><h2>模型能力</h2></div>' +
+    '<div class="seg" id="tier-filters" role="group" aria-label="档位筛选">' + filters + "</div></div>"
+  );
+
+  if (!sorted.length) {
+    parts.push('<p class="muted">无匹配型号</p>');
+    return parts.join("");
+  }
+
+  parts.push(
+    '<div class="table-wrap"><table><thead><tr>' +
+    "<th>型号</th><th>档位</th>" +
+    sortHead("aa", "AA 指数", true) +
+    sortHead("cost", "单任务 $", true) +
+    sortHead("minutes", "耗时", true) +
+    sortHead("calls", "7 天轮次", true) +
+    sortHead("quota", "渠道已用", true) +
+    "<th>定位</th></tr></thead><tbody>"
+  );
+
+  for (const row of sorted) {
+    const cur = activeEffortRow(row);
+    const efforts = row.efforts || [];
+    let effortHtml = "";
+    if (efforts.length) {
+      effortHtml = '<div class="eff-switch">' +
+        (row.isUltra ? '<span class="chip chip-ultra">ultra</span>' : "") +
+        efforts.map((e) => {
+          const shortEff = e.effort === "non-reasoning" ? "none" : e.effort;
+          return '<button type="button" class="eff-btn ' + (e.effort === cur.effort ? "is-on" : "") + '" data-eff-model="' + esc(row.model) + '" data-eff-val="' + esc(e.effort) + '">' + esc(shortEff) + "</button>";
+        }).join("") + "</div>";
+    } else {
+      effortHtml = renderTierBadges(row.tier);
+    }
+
+    const aaNum = cur.index == null || cur.index === "" ? null : Number(cur.index);
+    const aaHtml = aaNum != null
+      ? '<span class="aa-cell num"><span class="aa-score">' + esc(cur.index) + '</span><span class="aa-bar"><span style="width:' + Math.min(100, (aaNum / 65) * 100).toFixed(0) + '%"></span></span></span>'
+      : '<span class="muted">—</span>';
+
+    const totalCalls = (row.mainRequests || 0) + (row.subRequests || 0);
+    const callsHtml = totalCalls
+      ? '<span class="strong-en">' + totalCalls.toLocaleString("zh-CN") + "</span>"
+      : '<span class="muted">—</span>';
+
+    const qKl = heat(row.tightUsed, false);
+    const qHtml = row.tightUsed == null
+      ? '<span class="muted">—</span>'
+      : '<span class="q-mini num"><span>' + pct(row.tightUsed) + '</span><span class="q-bar ' + qKl + '"><span style="width:' + Math.min(100, row.tightUsed * 100).toFixed(0) + '%"></span></span></span>';
+
+    const tagsHtml = '<div class="chip-group">' + (row.tags || []).slice(0, 4).map((tg) => {
+      const neg = tg.startsWith("×");
+      return '<span class="chip ' + (neg ? "chip-hot" : "") + '">' + esc(tg) + "</span>";
+    }).join("") + "</div>";
+
+    const isOpen = expandedModels.has(row.model);
+    const viaBadge = row.provider ? '<span class="chip">' + esc(row.provider) + "</span>" : "";
+    parts.push(
+      '<tr class="cap-row" data-model-row="' + esc(row.model) + '" aria-expanded="' + isOpen + '">' +
+      '<td><div class="model-cell">' + vIcon(row.model || row.provider, 28) + '<span class="model-id">' + esc(row.model) + "</span>" + viaBadge + "</div></td>" +
+      "<td>" + effortHtml + "</td>" +
+      '<td class="num">' + aaHtml + "</td>" +
+      '<td class="num cost-val">' + esc(cur.cost ?? "—") + "</td>" +
+      '<td class="num muted">' + esc(cur.minutes ? cur.minutes + "m" : "—") + "</td>" +
+      '<td class="num">' + callsHtml + "</td>" +
+      '<td class="num">' + qHtml + "</td>" +
+      "<td>" + tagsHtml + "</td></tr>"
+    );
+
+    if (isOpen) {
+      const allEffCards = efforts.length
+        ? '<div class="eff-cards">' + efforts.map((e) =>
+            '<div class="eff-card num"><strong>' + esc(e.effort) + "</strong> · AA " + esc(e.index ?? "—") + " · " + esc(e.cost ?? "—") + " · " + esc(e.minutes ? e.minutes + "m" : "—") + "</div>"
+          ).join("") + "</div>"
+        : "";
+      parts.push(
+        '<tr class="detail-row"><td colspan="8"><div class="detail-grid">' +
+        allEffCards +
+        (row.suited ? '<div><span class="muted">适合派：</span>' + esc(row.suited) + "</div>" : "") +
+        (row.unsuited ? '<div><span class="muted">禁用场景：</span>' + esc(row.unsuited) + "</div>" : "") +
+        (row.measured ? '<div><span class="muted">本机实测：</span>' + esc(row.measured) + "</div>" : "") +
+        "</div></td></tr>"
+      );
+    }
+  }
+  parts.push("</tbody></table></div>");
+  return parts.join("");
+}
+
+function updateTabButtons(data) {
+  const routes = (data && data.dispatch && data.dispatch.routes) || [];
+  const hotRoutes = routes.filter((r) => r.hot).length;
+  const alerts = ((data && data.tight) || []).filter((t) => t.used != null && t.used >= 0.45).length;
+  const caps = ((data && data.dispatch && data.dispatch.capabilities) || []).length;
+
+  tabsBox.querySelectorAll("button[data-tab]").forEach((btn) => {
+    const id = btn.dataset.tab;
+    btn.setAttribute("aria-selected", id === activeTab ? "true" : "false");
+    if (id === "overview") {
+      btn.innerHTML = "用量" + (alerts ? '<span class="tab-badge is-hot num">' + alerts + "</span>" : "");
+    } else if (id === "dispatch") {
+      btn.innerHTML = "任务分工" + (hotRoutes ? '<span class="tab-badge is-hot num">' + hotRoutes + "</span>" : "");
+    } else if (id === "models") {
+      btn.innerHTML = "模型能力" + (caps ? '<span class="tab-badge num">' + caps + "</span>" : "");
+    }
+  });
+}
+
+function render(data) {
+  latestData = data;
+  if (data.publicSession) activeTab="overview";
+  tabsBox.hidden=!!data.publicSession;
+  healthBtn.hidden=!!data.publicSession;
+  logoutBtn.hidden = !data.publicSession;
+  renderSamplingDrawer(data);
+  if (!data.workspace && activeTab === "devices") activeTab="overview";
+  updateTabButtons(data);
+
+  const parts = [];
+  const w=data.workspace;
+  document.querySelector('[data-tab="devices"]').hidden=!w;
+  const brand=w?.title || "模型用量";
+  document.querySelector("h1").textContent=brand;
+  if (w) parts.push(workspaceBanner(w));
+  const hardErrors = (data.errors || []).filter((msg) => !String(msg).includes("显示的是"));
+  if (hardErrors.length) {
+    parts.push('<div class="banner">' + hardErrors.map(esc).join("<br>") + "</div>");
+  }
+  if (activeTab === "devices" && w) parts.push(workspaceSettings(w));
+  else if (activeTab === "overview") parts.push(data.usageEnabled === false ? '<div class="workspace-box"><h2>用量采集</h2><p>尚未启用本机用量采集。设备盘点和任务建议可独立使用。</p></div>' : renderOverview(data));
+  else if (activeTab === "dispatch") parts.push(renderDispatch(data), w ? workspacePolicy(w,data.dispatch.routes) : "");
+  else if (activeTab === "models") parts.push(w ? workspaceRatings(w) : "", renderModels(data));
+
+  app.innerHTML = parts.join("");
+  document.title=brand;
+  if(w?.demo) healthText.textContent="合成演示";
+  else if(w && !data.accounts?.length) healthText.textContent="暂无用量读数";
+}
+
+async function load(fresh) {
+  rangeBox.querySelectorAll("button").forEach((btn) => {
+    btn.setAttribute("aria-pressed", btn.dataset.range === range ? "true" : "false");
+  });
+  if (fresh) healthText.textContent = "syncing...";
+  try {
+    if (!document.documentElement.dataset.service) { render(window.DEMO_SNAPSHOTS[range]); return; }
+    const response = await fetch("./api/snapshot?range=" + encodeURIComponent(range) + (fresh ? "&fresh=1" : ""));
+    if (!response.ok) throw new Error("snapshot unavailable");
+    render(await response.json());
+    return;
+  } catch (err) {
+    latestData=null;
+    app.textContent="无法读取当前服务。请检查连接后刷新。";
+    healthText.textContent="离线";
+    drawer.hidden=true;
+  }
+}
+
+tabsBox.addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-tab]");
+  if (!btn) return;
+  activeTab = btn.dataset.tab;
+  history.replaceState(null, "", "#" + activeTab);
+  if (latestData) render(latestData);
+});
+tabsBox.addEventListener("keydown", (e) => {
+  if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+  const order = Array.from(tabsBox.querySelectorAll("button[data-tab]:not([hidden])"), b=>b.dataset.tab);
+  const idx = order.indexOf(activeTab);
+  const next = order[(idx + (e.key === "ArrowRight" ? 1 : -1) + order.length) % order.length];
+  activeTab = next;
+  history.replaceState(null, "", "#" + activeTab);
+  if (latestData) render(latestData);
+  tabsBox.querySelector('button[data-tab="' + next + '"]')?.focus();
+});
+
+healthBtn.addEventListener("click", () => {
+  const open = !drawer.hidden;
+  drawer.hidden = open;
+  healthBtn.setAttribute("aria-expanded", String(!open));
+});
+
+rangeBox.addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-range]");
+  if (!btn) return;
+  range = btn.dataset.range;
+  localStorage.setItem("usage-range", range);
+  load(false);
+});
+
+document.querySelector("#refresh").addEventListener("click", () => load(true));
+logoutBtn.addEventListener("click", async () => {
+  await fetch("/auth/logout", { method: "POST" });
+  location.href = "/login";
+});
+
+app.addEventListener("click", (e) => {
+  const viewBtn = e.target.closest("button[data-dispatch-view]");
+  if (viewBtn) {
+    dispatchView = viewBtn.dataset.dispatchView;
+    localStorage.setItem("dispatch-view", dispatchView);
+    if (latestData) render(latestData);
+    return;
+  }
+  const questNode = e.target.closest("button[data-quest-idx]");
+  if (questNode) {
+    selectedQuestIndex = Number(questNode.dataset.questIdx);
+    if (latestData) render(latestData);
+    return;
+  }
+  const spendBtn = e.target.closest("#toggle-spend-models");
+  if (spendBtn) {
+    showAllSpendModels = !showAllSpendModels;
+    if (latestData) render(latestData);
+    return;
+  }
+  const filterBtn = e.target.closest("button[data-tier-filter]");
+  if (filterBtn) {
+    modelTierFilter = filterBtn.dataset.tierFilter;
+    if (latestData) render(latestData);
+    return;
+  }
+  const sortBtn = e.target.closest("button[data-sort]");
+  if (sortBtn) {
+    const key = sortBtn.dataset.sort;
+    if (modelSort.key === key) {
+      modelSort.dir = modelSort.dir === "desc" ? "asc" : "desc";
+    } else {
+      modelSort = { key, dir: key === "cost" || key === "minutes" ? "asc" : "desc" };
+    }
+    if (latestData) render(latestData);
+    return;
+  }
+  const effBtn = e.target.closest("button[data-eff-model]");
+  if (effBtn) {
+    e.stopPropagation();
+    selectedEffort[effBtn.dataset.effModel] = effBtn.dataset.effVal;
+    if (latestData) render(latestData);
+    return;
+  }
+  const capRow = e.target.closest("tr[data-model-row]");
+  if (capRow) {
+    const m = capRow.dataset.modelRow;
+    if (expandedModels.has(m)) expandedModels.delete(m);
+    else expandedModels.add(m);
+    if (latestData) render(latestData);
+  }
+});
+
+setInterval(() => {
+  document.querySelectorAll("[data-reset]").forEach((node) => {
+    const stamp = Number(node.getAttribute("data-reset"));
+    if (stamp) node.textContent = remainCompact(stamp);
+  });
+  document.querySelectorAll("[data-age]").forEach((node) => {
+    const stamp = Number(node.getAttribute("data-age"));
+    node.textContent = ageCompact(stamp);
+  });
+}, 30000);
+
+setInterval(() => {
+  if (!document.hidden && !app.contains(document.activeElement)) load(false);
+}, 60000);
+
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) load(false);
+});
+
+load(false);
+</script>
+</body>
+</html>

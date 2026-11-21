@@ -1,0 +1,432 @@
+{
+  "fetchedAt": 1794916800000,
+  "range": "all",
+  "errors": [],
+  "tight": [
+    {
+      "provider": "example",
+      "label": "example",
+      "email": "studio@example.invalid",
+      "plan": "",
+      "window": "示例额度 · 周",
+      "used": 0.48,
+      "resetsAt": 1795176000000,
+      "pace": "近 6 小时样本不够",
+      "urgent": false,
+      "hoursToFull": null,
+      "status": "ok",
+      "resets": null
+    }
+  ],
+  "accounts": [
+    {
+      "provider": "example",
+      "label": "example",
+      "email": "studio@example.invalid",
+      "accountId": "example-1",
+      "plan": "",
+      "org": "",
+      "fetchedAt": 1794916800000,
+      "dataAt": 1794916800000,
+      "quota": "ok",
+      "stored": false,
+      "resets": null,
+      "windows": [
+        {
+          "id": "demo-week",
+          "label": "示例额度",
+          "windowLabel": "Weekly",
+          "name": "示例额度 · 周",
+          "used": 0.48,
+          "resetsAt": 1795176000000,
+          "resetsInHours": 72.0,
+          "status": "ok",
+          "pace": "近 6 小时样本不够",
+          "urgent": false,
+          "hoursToFull": null,
+          "detail": "",
+          "points": [],
+          "stored": false,
+          "recordedAt": null
+        }
+      ],
+      "note": "",
+      "sessionRequests": 275,
+      "sessionCost": 1.1,
+      "sessionOutput": 4675
+    }
+  ],
+  "stale": [],
+  "spend": {
+    "range": "all",
+    "from": 1794139080000,
+    "to": 1794916740000,
+    "requests": 330,
+    "failed": 0,
+    "cost": 1.1,
+    "inputTokens": 19800,
+    "outputTokens": 7150,
+    "cacheReadTokens": 7700,
+    "cacheWriteTokens": 0,
+    "cacheRate": 0.28,
+    "byModel": [
+      {
+        "provider": "example",
+        "providerLabel": "example",
+        "model": "example-coder",
+        "requests": 165,
+        "failed": 0,
+        "inputTokens": 7920,
+        "outputTokens": 2805,
+        "cacheReadTokens": 3300,
+        "cacheWriteTokens": 0,
+        "cost": 0.66
+      },
+      {
+        "provider": "example",
+        "providerLabel": "example",
+        "model": "example-writer",
+        "requests": 110,
+        "failed": 0,
+        "inputTokens": 5280,
+        "outputTokens": 1870,
+        "cacheReadTokens": 2200,
+        "cacheWriteTokens": 0,
+        "cost": 0.44
+      },
+      {
+        "provider": "local-deepseek",
+        "providerLabel": "local-deepseek",
+        "model": "DeepSeek-demo",
+        "requests": 55,
+        "failed": 0,
+        "inputTokens": 6600,
+        "outputTokens": 2475,
+        "cacheReadTokens": 2200,
+        "cacheWriteTokens": 0,
+        "cost": 0.0
+      }
+    ],
+    "byDay": [
+      {
+        "day": "2026-11-08",
+        "requests": 60,
+        "cost": 0.2
+      },
+      {
+        "day": "2026-11-09",
+        "requests": 54,
+        "cost": 0.18
+      },
+      {
+        "day": "2026-11-10",
+        "requests": 48,
+        "cost": 0.16
+      },
+      {
+        "day": "2026-11-11",
+        "requests": 42,
+        "cost": 0.14
+      },
+      {
+        "day": "2026-11-12",
+        "requests": 36,
+        "cost": 0.12000000000000001
+      },
+      {
+        "day": "2026-11-13",
+        "requests": 30,
+        "cost": 0.1
+      },
+      {
+        "day": "2026-11-14",
+        "requests": 24,
+        "cost": 0.08
+      },
+      {
+        "day": "2026-11-15",
+        "requests": 18,
+        "cost": 0.060000000000000005
+      },
+      {
+        "day": "2026-11-16",
+        "requests": 12,
+        "cost": 0.04
+      },
+      {
+        "day": "2026-11-17",
+        "requests": 6,
+        "cost": 0.02
+      }
+    ],
+    "byAgent": [
+      {
+        "agentType": "subagent",
+        "requests": 165,
+        "cost": 0.66
+      },
+      {
+        "agentType": "main",
+        "requests": 165,
+        "cost": 0.44
+      }
+    ]
+  },
+  "dispatch": {
+    "routes": [
+      {
+        "index": 1,
+        "task": "对话问答",
+        "floor": "综合指数",
+        "reason": "综合指数 48",
+        "pin": null,
+        "preferred": "example-writer · high · 书桌电脑 / 示例编辑器 / example",
+        "alternate": "example-coder · high · 计算工作站 / 示例终端 / example",
+        "avoid": "",
+        "preferredUsed": null
+      },
+      {
+        "index": 2,
+        "task": "项目规划",
+        "floor": "策略与运营指数（参考）",
+        "reason": "策略与运营指数（参考） 46",
+        "pin": null,
+        "preferred": "example-coder · high · 计算工作站 / 示例终端 / example",
+        "alternate": "example-writer · high · 书桌电脑 / 示例编辑器 / example",
+        "avoid": "",
+        "preferredUsed": null
+      },
+      {
+        "index": 3,
+        "task": "结果核对",
+        "floor": "综合指数",
+        "reason": "综合指数 48",
+        "pin": null,
+        "preferred": "example-writer · high · 书桌电脑 / 示例编辑器 / example",
+        "alternate": "example-coder · high · 计算工作站 / 示例终端 / example",
+        "avoid": "",
+        "preferredUsed": null
+      },
+      {
+        "index": 4,
+        "task": "编写代码",
+        "floor": "工程指数（参考）",
+        "reason": "工程指数（参考） 51",
+        "pin": null,
+        "preferred": "example-coder · high · 计算工作站 / 示例终端 / example",
+        "alternate": "example-writer · high · 书桌电脑 / 示例编辑器 / example",
+        "avoid": "",
+        "preferredUsed": null
+      },
+      {
+        "index": 5,
+        "task": "调试程序",
+        "floor": "工程指数（参考）",
+        "reason": "工程指数（参考） 51",
+        "pin": null,
+        "preferred": "example-coder · high · 计算工作站 / 示例终端 / example",
+        "alternate": "example-writer · high · 书桌电脑 / 示例编辑器 / example",
+        "avoid": "",
+        "preferredUsed": null
+      },
+      {
+        "index": 6,
+        "task": "起草文稿",
+        "floor": "综合指数",
+        "reason": "综合指数 48",
+        "pin": null,
+        "preferred": "example-writer · high · 书桌电脑 / 示例编辑器 / example",
+        "alternate": "example-coder · high · 计算工作站 / 示例终端 / example",
+        "avoid": "",
+        "preferredUsed": null
+      },
+      {
+        "index": 7,
+        "task": "语言翻译",
+        "floor": "综合指数",
+        "reason": "综合指数 48",
+        "pin": null,
+        "preferred": "example-writer · high · 书桌电脑 / 示例编辑器 / example",
+        "alternate": "example-coder · high · 计算工作站 / 示例终端 / example",
+        "avoid": "",
+        "preferredUsed": null
+      },
+      {
+        "index": 8,
+        "task": "编辑校对",
+        "floor": "综合指数",
+        "reason": "综合指数 48",
+        "pin": null,
+        "preferred": "example-writer · high · 书桌电脑 / 示例编辑器 / example",
+        "alternate": "example-coder · high · 计算工作站 / 示例终端 / example",
+        "avoid": "",
+        "preferredUsed": null
+      },
+      {
+        "index": 9,
+        "task": "资料检索",
+        "floor": "策略与运营指数（参考）",
+        "reason": "策略与运营指数（参考） 46",
+        "pin": null,
+        "preferred": "example-coder · high · 计算工作站 / 示例终端 / example",
+        "alternate": "example-writer · high · 书桌电脑 / 示例编辑器 / example",
+        "avoid": "",
+        "preferredUsed": null
+      },
+      {
+        "index": 10,
+        "task": "提取数据",
+        "floor": "综合指数",
+        "reason": "综合指数 48",
+        "pin": null,
+        "preferred": "example-writer · high · 书桌电脑 / 示例编辑器 / example",
+        "alternate": "example-coder · high · 计算工作站 / 示例终端 / example",
+        "avoid": "",
+        "preferredUsed": null
+      },
+      {
+        "index": 11,
+        "task": "分析图像",
+        "floor": "综合指数",
+        "reason": "综合指数 48",
+        "pin": null,
+        "preferred": "example-writer · high · 书桌电脑 / 示例编辑器 / example",
+        "alternate": "",
+        "avoid": "",
+        "preferredUsed": null
+      },
+      {
+        "index": 12,
+        "task": "摘要汇总",
+        "floor": "综合指数",
+        "reason": "综合指数 48",
+        "pin": null,
+        "preferred": "example-writer · high · 书桌电脑 / 示例编辑器 / example",
+        "alternate": "example-coder · high · 计算工作站 / 示例终端 / example",
+        "avoid": "",
+        "preferredUsed": null
+      },
+      {
+        "index": 13,
+        "task": "自动化操作",
+        "floor": "策略与运营指数（参考）",
+        "reason": "策略与运营指数（参考） 46",
+        "pin": null,
+        "preferred": "example-coder · high · 计算工作站 / 示例终端 / example",
+        "alternate": "example-writer · high · 书桌电脑 / 示例编辑器 / example",
+        "avoid": "",
+        "preferredUsed": null
+      }
+    ],
+    "capabilities": [
+      {
+        "model": "example-writer",
+        "tags": [
+          "书桌电脑 / 示例编辑器"
+        ],
+        "efforts": [
+          {
+            "effort": "high",
+            "index": 48,
+            "cost": 0.08
+          }
+        ],
+        "provider": "example"
+      },
+      {
+        "model": "example-coder",
+        "tags": [
+          "计算工作站 / 示例终端"
+        ],
+        "efforts": [
+          {
+            "effort": "high",
+            "index": 40,
+            "cost": 0.12
+          }
+        ],
+        "provider": "example"
+      }
+    ],
+    "channels": [],
+    "sampling": []
+  },
+  "workspace": {
+    "title": "示例工作室",
+    "consent": true,
+    "demo": true,
+    "devices": [
+      {
+        "id": "local",
+        "name": "书桌电脑",
+        "alias": "",
+        "agents": {
+          "示例编辑器": "演示目录"
+        },
+        "seen": 1,
+        "status": "已盘点",
+        "error": ""
+      },
+      {
+        "id": "studio",
+        "name": "计算工作站",
+        "alias": "",
+        "agents": {
+          "示例终端": "演示目录"
+        },
+        "seen": 1,
+        "status": "已盘点",
+        "error": ""
+      }
+    ],
+    "models": [
+      {
+        "key": "a7bb11fb710c68fd723238e5",
+        "device": "local",
+        "name": "书桌电脑",
+        "label": "example-writer · high · 书桌电脑 / 示例编辑器 / example",
+        "agent": "示例编辑器",
+        "provider": "example",
+        "model": "example-writer",
+        "effort": "high",
+        "ready": true,
+        "disabled": false,
+        "score": 48,
+        "coding": 25,
+        "agentic": 36,
+        "cost": 0.08,
+        "used": null,
+        "image": true,
+        "status": "目录可用"
+      },
+      {
+        "key": "2936a8e1181fcc95f0eafd64",
+        "device": "studio",
+        "name": "计算工作站",
+        "label": "example-coder · high · 计算工作站 / 示例终端 / example",
+        "agent": "示例终端",
+        "provider": "example",
+        "model": "example-coder",
+        "effort": "high",
+        "ready": true,
+        "disabled": false,
+        "score": 40,
+        "coding": 51,
+        "agentic": 46,
+        "cost": 0.12,
+        "used": null,
+        "image": false,
+        "status": "目录可用"
+      }
+    ],
+    "scoreInfo": {
+      "enabled": false,
+      "hasKey": false,
+      "updated": 0,
+      "version": "示例",
+      "error": "",
+      "stale": false
+    }
+  },
+  "usageEnabled": true
+}
